@@ -9,6 +9,10 @@ pub enum Token {
     Num(u32),
     Plus,
     Minus,
+    Asterisk,
+    Slash,
+    LParen,
+    RParen,
 }
 
 pub struct TokenStream<I: Iterator<Item = Token>> {
@@ -26,12 +30,15 @@ impl<I> TokenStream<I> where I: Iterator<Item = Token> {
         self.tokens.next_if_eq(&expected).map(|_| true)
     }
 
+    pub fn consume_if(&mut self, f: impl FnOnce(&<I as Iterator>::Item) -> bool) -> Option<Token> {
+        self.tokens.next_if(f)
+    }
+
     pub fn consume_number(&mut self) -> Option<u32> {
-        match self.tokens.peek() {
-            Some(Token::Num(x)) => Some(*x),
-            Some(_) => None,
-            None => None,
-        }
+        self.tokens.next_if(|t| match t {
+            Token::Num(_) => true,
+            _ => false,
+        }).map(|t| if let Token::Num(x) = t { Some(x) } else { None }).flatten()
     }
 
     pub fn next(&mut self) -> Option<Token> {
@@ -48,6 +55,10 @@ pub fn tokenize(s: String) -> Result<Vec<Token>, TokenizeError> {
             ' ' => {},
             '+' => tokens.push(Token::Plus),
             '-' => tokens.push(Token::Minus),
+            '*' => tokens.push(Token::Asterisk),
+            '/' => tokens.push(Token::Slash),
+            '(' => tokens.push(Token::LParen),
+            ')' => tokens.push(Token::RParen),
             '0'..'9' => {
                 let mut num = c.to_string();
                 while let Some((_, c)) = s.next() {

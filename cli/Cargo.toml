@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-codegen = { path = "../codegen" }
+tokenizer.path = "../tokenizer"
+codegen.path = "../codegen"

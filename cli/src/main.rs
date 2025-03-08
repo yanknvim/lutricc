@@ -1,5 +1,7 @@
 use std::env;
-use codegen::generate;
+use std::io::{Write, BufWriter, stdout};
+use tokenizer;
+use codegen;
 
 fn main() {
     let args: Vec<_> = env::args().collect();
@@ -8,8 +10,8 @@ fn main() {
         return;
     }
 
-    match generate(args[1].parse::<u32>().unwrap()) {
-        Ok(asm) => println!("{}", asm),
-        Err(_) => println!("some error"),
-    }
+   let tokens = tokenizer::tokenize(args[1].clone()).unwrap();
+
+   let mut writer = BufWriter::new(stdout());
+   codegen::generate(&mut writer, tokens).unwrap();
 }

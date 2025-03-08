@@ -1,6 +1,10 @@
 [workspace]
 members = [
   "cli",
+  "tokenizer",
   "parser",
-  "codegen",
+  "codegen"
 ]
+
+[workspace.dependencies]
+anyhow = "1.0.97"

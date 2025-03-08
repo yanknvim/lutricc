@@ -3,5 +3,5 @@
 leaning from [compilerbook](https://www.sigbus.info/compilerbook)
 
 # todo
-- [] implement stack machine
-- [] from step6
+- [ ] implement stack machine
+- [ ] from step6

@@ -1,3 +1,6 @@
+mod error;
+use error::TokenizeError;
+
 use anyhow::Result;
 use std::iter::Peekable;
 
@@ -23,17 +26,11 @@ impl<I> TokenStream<I> where I: Iterator<Item = Token> {
         self.tokens.next_if_eq(&expected).map(|_| true)
     }
 
-    pub fn expect(&mut self, expected: Token) -> Result<bool, String> {
-        match self.tokens.next_if_eq(&expected) {
-            Some(_) => Ok(true),
-            None => Err(format!("Not expected token, expected: {:?}", expected)),
-        }
-    }
-
-    pub fn expect_number(&mut self) -> Result<u32, String> {
+    pub fn consume_number(&mut self) -> Option<u32> {
         match self.tokens.peek() {
-            Some(Token::Num(x)) => Ok(*x),
-            _ => Err(format!("Not num")),
+            Some(Token::Num(x)) => Some(*x),
+            Some(_) => None,
+            None => None,
         }
     }
 
@@ -42,26 +39,26 @@ impl<I> TokenStream<I> where I: Iterator<Item = Token> {
     }
 }
 
-pub fn tokenize(s: String) -> Result<Vec<Token>, String> {
+pub fn tokenize(s: String) -> Result<Vec<Token>, TokenizeError> {
     let mut tokens: Vec<Token> = Vec::new();
 
-    let mut s = s.chars();
-    while let Some(c) = s.next() {
+    let mut s = s.chars().enumerate();
+    while let Some((index, c)) = s.next() {
         match c {
             ' ' => {},
             '+' => tokens.push(Token::Plus),
             '-' => tokens.push(Token::Minus),
             '0'..'9' => {
                 let mut num = c.to_string();
-                while let Some(c) = s.next() {
+                while let Some((_, c)) = s.next() {
                     if !c.is_ascii_digit() {
                         break;
                     }
                     num.push(c);
                 }
-                tokens.push(Token::Num(num.parse::<u32>().unwrap()))
-            }
-            _ => return Err(format!("invalid token: {}", c)),
+                tokens.push(Token::Num(num.parse::<u32>().unwrap()));
+            },
+            _ => return Err(TokenizeError::UnexpectedCharacter(c, index)),
         }
     }
 

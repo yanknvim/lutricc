@@ -11,6 +11,12 @@ pub enum Token {
     Minus,
     Asterisk,
     Slash,
+    Equal,
+    NotEqual,
+    GreaterThan,
+    LessThan,
+    GreaterThanOrEqual,
+    LessThanOrEqual,
     LParen,
     RParen,
 }
@@ -19,10 +25,13 @@ pub struct TokenStream<I: Iterator<Item = Token>> {
     tokens: Peekable<I>,
 }
 
-impl<I> TokenStream<I> where I: Iterator<Item = Token> {
+impl<I> TokenStream<I>
+where
+    I: Iterator<Item = Token>,
+{
     pub fn new(tokens: I) -> Self {
         Self {
-            tokens: tokens.peekable()
+            tokens: tokens.peekable(),
         }
     }
 
@@ -31,10 +40,13 @@ impl<I> TokenStream<I> where I: Iterator<Item = Token> {
     }
 
     pub fn consume_number(&mut self) -> Option<u32> {
-        self.tokens.next_if(|t| match t {
-            Token::Num(_) => true,
-            _ => false,
-        }).map(|t| if let Token::Num(x) = t { Some(x) } else { None }).flatten()
+        self.tokens
+            .next_if(|t| match t {
+                Token::Num(_) => true,
+                _ => false,
+            })
+            .map(|t| if let Token::Num(x) = t { Some(x) } else { None })
+            .flatten()
     }
 
     pub fn next(&mut self) -> Option<Token> {
@@ -52,7 +64,7 @@ pub fn tokenize(s: String) -> Result<Vec<Token>, TokenizeError> {
     let mut s = s.chars().peekable();
     while let Some(c) = s.next() {
         match c {
-            ' ' => {},
+            ' ' => {}
             '+' => tokens.push(Token::Plus),
             '-' => tokens.push(Token::Minus),
             '*' => tokens.push(Token::Asterisk),
@@ -62,10 +74,40 @@ pub fn tokenize(s: String) -> Result<Vec<Token>, TokenizeError> {
             '0'..='9' => {
                 let mut num = c.to_string();
                 while let Some(c) = s.peek() {
-                    if !c.is_ascii_digit() { break };
+                    if !c.is_ascii_digit() {
+                        break;
+                    };
                     num.push(s.next().unwrap());
                 }
                 tokens.push(Token::Num(num.parse::<u32>().unwrap()))
+            }
+            '=' => match s.peek() {
+                Some('=') => {
+                    s.next();
+                    tokens.push(Token::Equal);
+                }
+                _ => unimplemented!(),
+            },
+            '!' => match s.peek() {
+                Some('=') => {
+                    s.next();
+                    tokens.push(Token::NotEqual);
+                }
+                _ => unimplemented!(),
+            },
+            '>' => match s.peek() {
+                Some('=') => {
+                    s.next();
+                    tokens.push(Token::GreaterThanOrEqual);
+                }
+                _ => tokens.push(Token::GreaterThan),
+            },
+            '<' => match s.peek() {
+                Some('=') => {
+                    s.next();
+                    tokens.push(Token::LessThanOrEqual);
+                }
+                _ => tokens.push(Token::LessThan),
             },
             _ => return Err(TokenizeError::UnexpectedCharacter(c)),
         }
@@ -73,5 +115,3 @@ pub fn tokenize(s: String) -> Result<Vec<Token>, TokenizeError> {
 
     Ok(tokens)
 }
-
-

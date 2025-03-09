@@ -1,8 +1,8 @@
-use std::env;
-use std::io::{Write, BufWriter, stdout};
-use tokenizer;
-use parser;
 use codegen;
+use parser;
+use std::env;
+use std::io::{BufWriter, Write, stdout};
+use tokenizer;
 
 fn main() {
     let args: Vec<_> = env::args().collect();
@@ -15,7 +15,7 @@ fn main() {
     let stream = tokenizer::TokenStream::new(tokens.into_iter());
     let mut parser = parser::Parser::new(stream);
     let node = parser.parse_expr();
-    
+
     let mut writer = BufWriter::new(stdout());
     codegen::generate_head(&mut writer).unwrap();
     codegen::generate(&mut writer, node).unwrap();

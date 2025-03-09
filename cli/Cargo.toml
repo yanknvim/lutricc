@@ -5,4 +5,5 @@ edition = "2024"
 
 [dependencies]
 tokenizer.path = "../tokenizer"
+parser.path = "../parser"
 codegen.path = "../codegen"

@@ -23,25 +23,40 @@ impl<I> Parser<I> where I: Iterator<Item = Token> {
         let mut node = self.parse_mul();
 
         loop {
-            match self.stream.consume_if(|t| {println!("{:?}", t); *t == Token::Plus || *t == Token::Minus}) {
-                Some(Token::Plus) => { node = Node::Add(Box::new(node), Box::new(self.parse_mul())); },
-                Some(Token::Minus) => { node = Node::Sub(Box::new(node), Box::new(self.parse_mul())); },
-                _ => return node,
+            match self.stream.peek() {
+                Some(Token::Plus) => {
+                    let _ = self.stream.next();
+                    node = Node::Add(Box::new(node), Box::new(self.parse_mul()))
+                },
+                Some(Token::Minus) => {
+                    let _ = self.stream.next();
+                    node = Node::Sub(Box::new(node), Box::new(self.parse_mul()))
+                },
+                _ => break,
             }
         }
+
+        node
     }
 
-
-    fn parse_mul(&mut self) -> Node {
+    pub fn parse_mul(&mut self) -> Node {
         let mut node = self.parse_primary();
 
         loop {
-            match self.stream.consume_if(|t| *t == Token::Asterisk || *t == Token::Slash) {
-                Some(Token::Asterisk) => { node = Node::Mul(Box::new(node), Box::new(self.parse_primary())); },
-                Some(Token::Slash) => { node = Node::Mul(Box::new(node), Box::new(self.parse_primary())); },
-                _ => return node,
+            match self.stream.peek() {
+                Some(Token::Asterisk) => {
+                    let _ = self.stream.next();
+                    node = Node::Mul(Box::new(node), Box::new(self.parse_primary()))
+                },
+                Some(Token::Slash) => {
+                    let _ = self.stream.next();
+                    node = Node::Div(Box::new(node), Box::new(self.parse_primary()))
+                },
+                _ => break,
             }
         }
+
+        node
     }
 
     fn parse_primary(&mut self) -> Node {

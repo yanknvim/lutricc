@@ -49,8 +49,8 @@ impl<I> TokenStream<I> where I: Iterator<Item = Token> {
 pub fn tokenize(s: String) -> Result<Vec<Token>, TokenizeError> {
     let mut tokens: Vec<Token> = Vec::new();
 
-    let mut s = s.chars().enumerate();
-    while let Some((index, c)) = s.next() {
+    let mut s = s.chars().peekable();
+    while let Some(c) = s.next() {
         match c {
             ' ' => {},
             '+' => tokens.push(Token::Plus),
@@ -61,15 +61,13 @@ pub fn tokenize(s: String) -> Result<Vec<Token>, TokenizeError> {
             ')' => tokens.push(Token::RParen),
             '0'..='9' => {
                 let mut num = c.to_string();
-                while let Some((_, c)) = s.next() {
-                    if !c.is_ascii_digit() {
-                        break;
-                    }
-                    num.push(c);
+                while let Some(c) = s.peek() {
+                    if !c.is_ascii_digit() { break };
+                    num.push(s.next().unwrap());
                 }
-                tokens.push(Token::Num(num.parse::<u32>().unwrap()));
+                tokens.push(Token::Num(num.parse::<u32>().unwrap()))
             },
-            _ => return Err(TokenizeError::UnexpectedCharacter(c, index)),
+            _ => return Err(TokenizeError::UnexpectedCharacter(c)),
         }
     }
 
